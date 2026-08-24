@@ -42,3 +42,8 @@ npm install
 
 # Start the Vite development server (usually runs on http://localhost:5173)
 npm run dev
+
+👨‍💻 Developed By
+Gokul Krishna
+
+Passionate Full-Stack Developer exploring modern web architectures and premium UI engineering.
