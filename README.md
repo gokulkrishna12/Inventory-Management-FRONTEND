@@ -1,16 +1,44 @@
-# React + Vite
+# 🎨 Inventory Management System - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This is the frontend client for the Full-Stack Inventory Management System. It is a Single Page Application (SPA) built with React and Vite, featuring a custom, responsive **Glassmorphism** UI design over a premium 4K background.
 
-Currently, two official plugins are available:
+### 🔗 Links
+* **Live Demo:** [View Live Application](https://inventory-management-frontend-one-lac.vercel.app/)
+* **Backend API Repository:** [GitHub - Backend](https://github.com/gokulkrishna12/Inventory-Management-BACKEND)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🛠️ Tech Stack & Tools
+* **Framework:** React.js (Bootstrapped with Vite)
+* **Routing:** React Router DOM
+* **HTTP Client:** Axios
+* **Icons:** Lucide-React
+* **Styling:** Custom CSS (Glassmorphism aesthetics, gradient typography)
+* **Deployment:** Vercel
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
+## ✨ Key Features
+* **Dynamic UI:** Frosted-glass components that adapt to different screen sizes.
+* **Instant Routing:** Smooth transitions between Inventory, Add Product, and Edit Product pages without browser reloads.
+* **API Integration:** Seamlessly communicates with the Express backend to display real-time database changes.
+* **SPA Optimized:** Includes a custom `vercel.json` configuration to handle React Router client-side navigation in production.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+---
+
+## 🚀 Local Setup
+
+To run this frontend locally on your machine:
+
+```bash
+# Clone this repository
+git clone [https://github.com/gokulkrishna12/Inventory-Management-FRONTEND.git](https://github.com/gokulkrishna12/Inventory-Management-FRONTEND.git)
+
+# Navigate into the directory
+cd Inventory-Management-FRONTEND
+
+# Install dependencies
+npm install
+
+# Start the Vite development server (usually runs on http://localhost:5173)
+npm run dev
