@@ -80,7 +80,7 @@ function EditProduct() {
   if (loading) {
     return (
       <div className="add-product-container">
-        <div className="add-product-card glass-panel" style={{ textAlign: 'center', padding: '3rem', color: '#cbd5e1' }}>
+        <div className="add-product-card glass-panel form-loading">
           Loading product details...
         </div>
       </div>
