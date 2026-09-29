@@ -42,7 +42,7 @@
     padding: 12px;
     border-radius: 8px;
     border: none;
-    background-color: #059669;
+    background-color: #047857;
     color: #ffffff;
     font-weight: 700;
     font-size: 16px;
@@ -52,7 +52,7 @@
 }
 
 .auth-btn:hover {
-    background: #059669;
+    background: #065f46;
 }
 
 .auth-error {
