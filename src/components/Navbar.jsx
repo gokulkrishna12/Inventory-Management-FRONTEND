@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Layers, ShieldCheck, LayoutDashboard, List, History } from 'lucide-react';
+
+// Bulletproof token decoder
+const getRoleFromToken = () => {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return 'user';
+        // Safe base64 decoding
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload).role === 'admin' ? 'admin' : 'user';
+    } catch (err) {
+        return 'user';
+    }
+};
 
 function Navbar() {
     const navigate = useNavigate();
+    const location = useLocation(); // Track URL changes
+    const [userRole, setUserRole] = useState('user');
 
-    // INSTANT Synchronous role check. No useEffect delays.
-    const [userRole] = useState(() => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) return 'user';
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("Navbar Token Role:", payload.role); // Check your F12 console!
-            return payload.role === 'admin' ? 'admin' : 'user';
-        } catch (err) {
-            return 'user';
-        }
-    });
+    // Re-check role EVERY time the page changes. Impossible to flip now!
+    useEffect(() => {
+        setUserRole(getRoleFromToken());
+    }, [location.pathname]);
 
     return (
         <header className="glass-panel" style={{ margin: '1.5rem auto', maxWidth: '1100px', width: 'calc(100% - 3rem)', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -37,7 +48,7 @@ function Navbar() {
 
                     {/* ONLY ADMIN SEES DASHBOARD */}
                     {userRole === 'admin' && (
-                        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.2s' }}>
+                        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                             <LayoutDashboard size={16} color="#38bdf8" /> Dashboard
                         </Link>
                     )}
@@ -47,7 +58,7 @@ function Navbar() {
                         <List size={16} color="#34d399" /> Inventory
                     </Link>
 
-                    {/* SALES HISTORY - STRICTLY HIDDEN FROM ADMINS */}
+                    {/* SALES HISTORY - STRICTLY FOR USERS ONLY */}
                     {userRole === 'user' && (
                         <Link to="/sales" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                             <History size={16} color="#38bdf8" /> Sales History

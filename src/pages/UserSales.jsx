@@ -8,7 +8,7 @@ function UserSales() {
     const [error, setError] = useState(null)
 
     useEffect(() => {
-        // Correct backend endpoint matching productController transaction history
+        // Fetch user's history
         api.get('/products/transactions/history')
             .then((res) => {
                 setTransactions(res.data.data || res.data || [])
@@ -22,14 +22,14 @@ function UserSales() {
     }, [])
 
     if (loading) {
-        return <div className="add-product-container"><div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>Loading sales history...</div></div>
+        return <div className="add-product-container"><div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>Loading your sales history...</div></div>
     }
 
     return (
         <div className="add-product-container" style={{ maxWidth: '900px' }}>
             <div className="glass-panel" style={{ padding: '30px' }}>
-                <h2>Sold Products & Sales History</h2>
-                <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>View all completed transactions and stock outflows.</p>
+                <h2>Your Sales History</h2>
+                <p style={{ color: '#cbd5e1', marginBottom: '20px' }}>View all your completed stock sales.</p>
 
                 {error && <div className="form-error">{error}</div>}
 
@@ -49,9 +49,11 @@ function UserSales() {
                             <tbody>
                                 {transactions.map((tx) => (
                                     <tr key={tx._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <td style={{ padding: '12px' }}>{tx.product?.name || 'Deleted Product'}</td>
+                                        <td style={{ padding: '12px', color: tx.product ? '#fff' : '#f87171' }}>
+                                            {tx.product?.name || '[Item Deleted from DB]'}
+                                        </td>
                                         <td style={{ padding: '12px', color: '#10b981', fontWeight: 'bold' }}>{tx.quantityChanged}</td>
-                                        <td style={{ padding: '12px' }}>{tx.user?.name || tx.user?.email || 'Staff'}</td>
+                                        <td style={{ padding: '12px' }}>{tx.user?.name || tx.user?.email || 'You'}</td>
                                         <td style={{ padding: '12px', color: '#94a3b8' }}>{new Date(tx.createdAt).toLocaleDateString()}</td>
                                     </tr>
                                 ))}

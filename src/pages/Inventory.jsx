@@ -1,30 +1,35 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Edit, Trash2, LogOut, Download, Plus, Search, ShoppingCart } from 'lucide-react'
 import Footer from '../components/Footer'
 import '../styles/Inventory.css'
 
+// Bulletproof token decoder
+const getRoleFromToken = () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return 'user';
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload).role === 'admin' ? 'admin' : 'user';
+  } catch (err) {
+    return 'user';
+  }
+};
+
 function Inventory() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [products, setProducts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // INSTANT Synchronous role check. No flickering.
-  const [userRole] = useState(() => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) return 'user'
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      console.log("Inventory Token Role:", payload.role); // Check your F12 console!
-      return payload.role === 'admin' ? 'admin' : 'user'
-    } catch (err) {
-      return 'user'
-    }
-  })
-
+  const [userRole, setUserRole] = useState('user')
   const [toast, setToast] = useState('')
 
   // Sell Modal States (For Staff)
@@ -41,15 +46,15 @@ function Inventory() {
     setTimeout(() => setToast(''), 3000)
   }
 
+  // Force re-check role on mount and route change
   useEffect(() => {
-    // Fetch Products
+    setUserRole(getRoleFromToken());
+  }, [location.pathname]);
+
+  useEffect(() => {
     api.get(`/products`)
       .then((response) => {
-        if (response.data && Array.isArray(response.data.data)) {
-          setProducts(response.data.data)
-        } else {
-          setProducts([])
-        }
+        setProducts(response.data?.data || [])
         setLoading(false)
       })
       .catch((err) => {
@@ -60,18 +65,13 @@ function Inventory() {
   }, [])
 
   const handleDelete = (id) => {
-    const isConfirmed = window.confirm('Are you sure you want to delete this product?')
-    if (isConfirmed) {
+    if (window.confirm('Are you sure you want to delete this product?')) {
       api.delete(`/products/${id}`)
         .then(() => {
-          setProducts((prevProducts) =>
-            prevProducts.filter((item) => (item._id || item.id) !== id)
-          )
+          setProducts((prev) => prev.filter((item) => (item._id || item.id) !== id))
           showToast('Product deleted successfully!')
         })
-        .catch((err) => {
-          showToast(err.response?.data?.message || 'Failed to delete product.')
-        })
+        .catch((err) => showToast(err.response?.data?.message || 'Delete failed.'))
     }
   }
 
@@ -86,7 +86,7 @@ function Inventory() {
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `inventory_export_${new Date().toISOString().split('T')[0]}.csv`)
+      link.setAttribute('download', `inventory_${new Date().toISOString().split('T')[0]}.csv`)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -95,7 +95,6 @@ function Inventory() {
     }
   }
 
-  // POS Sell Logic (Staff)
   const handleSellClick = (product) => {
     const productId = product._id || product.id;
     setSellData({ id: productId, name: product.name, maxQty: product.quantity });
@@ -108,47 +107,33 @@ function Inventory() {
       showToast('Invalid quantity!');
       return;
     }
-
     try {
       await api.post(`/products/${sellData.id}/sell`, { quantitySold: Number(sellQuantity) });
-
       setProducts(products.map(p => {
         const pId = p._id || p.id;
-        if (pId === sellData.id) {
-          return { ...p, quantity: p.quantity - sellQuantity };
-        }
+        if (pId === sellData.id) return { ...p, quantity: p.quantity - sellQuantity };
         return p;
       }));
-
       showToast(`Successfully sold ${sellQuantity}x ${sellData.name}!`);
       setIsSellModalOpen(false);
     } catch (err) {
-      showToast(err.response?.data?.message || 'Sale failed. Check stock levels.');
+      showToast(err.response?.data?.message || 'Sale failed.');
     }
   }
 
-  // View History Logic (Admin)
   const handleViewHistory = async () => {
     try {
       const response = await api.get('/products/transactions/history');
       setAuditLogs(response.data.data);
       setIsHistoryModalOpen(true);
     } catch (err) {
-      showToast('Failed to load history. Are you an admin?');
+      showToast('Failed to load history.');
     }
-  }
-
-  const getQuantityClass = (qty) => {
-    if (qty <= 0) return 'quantity-badge out-of-stock'
-    if (qty <= 10) return 'quantity-badge low-stock'
-    return 'quantity-badge in-stock'
   }
 
   const filteredProducts = products.filter((product) => {
     const searchLower = searchTerm.toLowerCase()
-    const nameMatch = product.name?.toLowerCase().includes(searchLower)
-    const categoryMatch = product.category?.name?.toLowerCase().includes(searchLower)
-    return nameMatch || categoryMatch
+    return product.name?.toLowerCase().includes(searchLower) || product.category?.name?.toLowerCase().includes(searchLower)
   })
 
   return (
@@ -160,7 +145,7 @@ function Inventory() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(5px)' }}>
           <div className="glass-panel" style={{ padding: '2rem', width: '800px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.2)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, color: '#fff' }}>Store Audit Logs</h3>
+              <h3 style={{ margin: 0, color: '#fff' }}>Store Audit Logs (All Users)</h3>
               <button onClick={() => setIsHistoryModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}>Close X</button>
             </div>
 
@@ -181,13 +166,13 @@ function Inventory() {
                   auditLogs.map((log) => (
                     <tr key={log._id}>
                       <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(log.createdAt).toLocaleString()}</td>
-                      <td style={{ color: '#38bdf8' }}>{log.user?.name || log.user?.email || 'Unknown User'}</td>
+                      <td style={{ color: '#38bdf8' }}>{log.user?.name || log.user?.email || 'System'}</td>
                       <td>
                         <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '0.75rem', background: log.type === 'IN' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)', color: log.type === 'IN' ? '#34d399' : '#f87171' }}>
                           {log.description || (log.type === 'IN' ? 'Stock Added' : 'Item Sold')}
                         </span>
                       </td>
-                      <td style={{ color: '#fff' }}>{log.product?.name || 'Deleted Product'}</td>
+                      <td style={{ color: log.product ? '#fff' : '#f87171' }}>{log.product?.name || '[Item Deleted from DB]'}</td>
                       <td style={{ fontWeight: 'bold' }}>{log.quantityChanged}</td>
                     </tr>
                   ))
@@ -237,7 +222,7 @@ function Inventory() {
               {filteredProducts.length} Items
             </span>
 
-            {/* ONLY ADMIN CAN SEE ADD PRODUCT & HISTORY BUTTONS */}
+            {/* ADMIN BUTTONS */}
             {userRole === 'admin' && (
               <>
                 <button onClick={handleViewHistory} className="header-btn" style={{ background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
@@ -249,13 +234,8 @@ function Inventory() {
               </>
             )}
 
-            <button onClick={handleExportCSV} className="header-btn btn-csv">
-              <Download size={16} /> Export CSV
-            </button>
-
-            <button onClick={handleLogout} className="header-btn btn-logout">
-              <LogOut size={16} /> Logout
-            </button>
+            <button onClick={handleExportCSV} className="header-btn btn-csv"><Download size={16} /> Export CSV</button>
+            <button onClick={handleLogout} className="header-btn btn-logout"><LogOut size={16} /> Logout</button>
           </div>
         </div>
 
@@ -276,9 +256,7 @@ function Inventory() {
       ) : error ? (
         <div className="error-state glass-panel">{error}</div>
       ) : filteredProducts.length === 0 ? (
-        <div className="empty-state glass-panel">
-          <p>No products match your search.</p>
-        </div>
+        <div className="empty-state glass-panel"><p>No products match your search.</p></div>
       ) : (
         <div className="inventory-table-card glass-panel">
           <table className="inventory-table">
@@ -298,54 +276,24 @@ function Inventory() {
                 return (
                   <tr key={productId}>
                     <td className="product-name">{product.name}</td>
+                    <td><span className="category-badge">{product.category?.name || 'Uncategorized'}</span></td>
+                    <td className="price-text">${Number(product.price || 0).toFixed(2)}</td>
                     <td>
-                      <span className="category-badge">
-                        {product.category ? product.category.name : 'Uncategorized'}
-                      </span>
-                    </td>
-                    <td className="price-text">
-                      ${Number(product.price || 0).toFixed(2)}
-                    </td>
-                    <td>
-                      <span className={getQuantityClass(product.quantity)}>
+                      <span className={product.quantity <= 0 ? 'quantity-badge out-of-stock' : product.quantity <= 10 ? 'quantity-badge low-stock' : 'quantity-badge in-stock'}>
                         {product.quantity}
                       </span>
                     </td>
-                    <td style={{ color: '#cbd5e1' }}>
-                      {product.supplier ? product.supplier.name : 'Unknown'}
-                    </td>
+                    <td style={{ color: '#cbd5e1' }}>{product.supplier?.name || 'Unknown'}</td>
                     <td>
                       <div className="actions-cell">
-
                         {userRole === 'admin' ? (
                           <>
-                            <button
-                              type="button"
-                              className="btn-edit"
-                              title="Edit Product"
-                              onClick={() => navigate(`/edit-product/${productId}`)}
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-delete"
-                              title="Delete Product"
-                              onClick={() => handleDelete(productId)}
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <button className="btn-edit" onClick={() => navigate(`/edit-product/${productId}`)}><Edit size={16} /></button>
+                            <button className="btn-delete" onClick={() => handleDelete(productId)}><Trash2 size={16} /></button>
                           </>
                         ) : (
-                          <button
-                            type="button"
-                            className="btn-sell"
-                            onClick={() => handleSellClick(product)}
-                          >
-                            <ShoppingCart size={14} /> Sell
-                          </button>
+                          <button className="btn-sell" onClick={() => handleSellClick(product)}><ShoppingCart size={14} /> Sell</button>
                         )}
-
                       </div>
                     </td>
                   </tr>
