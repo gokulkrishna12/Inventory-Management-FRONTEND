@@ -12,18 +12,16 @@ function Inventory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Instant User Role Initialization from Token (Prevents Admin role flash bug)
-  const [userRole, setUserRole] = useState(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        return payload.role || 'user'
-      } catch (err) {
-        return 'user'
-      }
+  // Rock-solid Strict Role Initialization
+  const [userRole] = useState(() => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return 'user'
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      return payload.role === 'admin' ? 'admin' : 'user'
+    } catch (err) {
+      return 'user'
     }
-    return 'user'
   })
 
   const [toast, setToast] = useState('')

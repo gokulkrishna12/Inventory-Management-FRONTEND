@@ -4,18 +4,19 @@ import { Layers, ShieldCheck, LayoutDashboard, List, History } from 'lucide-reac
 
 function Navbar() {
     const navigate = useNavigate();
-    const [userRole, setUserRole] = useState(null);
+    const [userRole, setUserRole] = useState('user'); // Default securely to user
 
     useEffect(() => {
-        // Decode JWT token to check user role
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
+        // Strict JWT Decoding
+        try {
+            const token = localStorage.getItem('token');
+            if (token) {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                setUserRole(payload.role);
-            } catch (err) {
-                console.error("Token read error:", err);
+                // Force strict role assignment
+                setUserRole(payload.role === 'admin' ? 'admin' : 'user');
             }
+        } catch (err) {
+            setUserRole('user');
         }
     }, []);
 
@@ -35,28 +36,27 @@ function Navbar() {
 
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
 
-                {/* Dynamic Navigation Links */}
-                {userRole && (
-                    <div style={{ display: 'flex', gap: '15px', marginRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}>
+                <div style={{ display: 'flex', gap: '15px', marginRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}>
 
-                        {/* ONLY ADMIN SEES DASHBOARD */}
-                        {userRole === 'admin' && (
-                            <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.2s' }}>
-                                <LayoutDashboard size={16} color="#38bdf8" /> Dashboard
-                            </Link>
-                        )}
-
-                        {/* INVENTORY LINK FOR ALL */}
-                        <Link to="/inventory" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
-                            <List size={16} color="#34d399" /> Inventory
+                    {/* ONLY ADMIN SEES DASHBOARD */}
+                    {userRole === 'admin' && (
+                        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.2s' }}>
+                            <LayoutDashboard size={16} color="#38bdf8" /> Dashboard
                         </Link>
+                    )}
 
-                        {/* SALES HISTORY LINK FOR ALL USERS */}
+                    {/* INVENTORY LINK FOR ALL */}
+                    <Link to="/inventory" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
+                        <List size={16} color="#34d399" /> Inventory
+                    </Link>
+
+                    {/* SALES HISTORY - STRICTLY HIDDEN FROM ADMINS */}
+                    {userRole === 'user' && (
                         <Link to="/sales" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                             <History size={16} color="#38bdf8" /> Sales History
                         </Link>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: '#34d399', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
                     <ShieldCheck size={14} /> JWT Secured
