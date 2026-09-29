@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Layers, ShieldCheck, LayoutDashboard, List } from 'lucide-react';
+import { Layers, ShieldCheck, LayoutDashboard, List, History } from 'lucide-react';
 
 function Navbar() {
     const navigate = useNavigate();
     const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
-        // Decode JWT token to check if user is admin
+        // Decode JWT token to check user role
         const token = localStorage.getItem('token');
         if (token) {
             try {
@@ -46,8 +46,14 @@ function Navbar() {
                             </Link>
                         )}
 
+                        {/* INVENTORY LINK FOR ALL */}
                         <Link to="/inventory" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                             <List size={16} color="#34d399" /> Inventory
+                        </Link>
+
+                        {/* SALES HISTORY LINK FOR ALL USERS */}
+                        <Link to="/sales" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
+                            <History size={16} color="#38bdf8" /> Sales History
                         </Link>
                     </div>
                 )}
