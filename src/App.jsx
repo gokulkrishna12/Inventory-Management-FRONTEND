@@ -1,59 +1,42 @@
-import { BrowserRouter as Router, Routes, Route, NavLink, Link } from 'react-router-dom'
-import { Boxes, PackagePlus, ListFilter } from 'lucide-react'
-import Inventory from './pages/Inventory'
-import AddProduct from './pages/AddProduct'
-import EditProduct from './pages/EditProduct'
-import Footer from './components/Footer'
-import './App.css'
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Inventory from './pages/Inventory';
+import AddProduct from './pages/AddProduct';
+import EditProduct from './pages/EditProduct';
+import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar'; // <-- Import the Navbar component
+import Dashboard from './pages/Dashboard';
+
+// Layout wrapper for all protected pages to automatically include the Navbar
+function AuthenticatedLayout() {
+  return (
+    <ProtectedRoute>
+      <Navbar />
+      <Outlet />
+    </ProtectedRoute>
+  );
+}
 
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <header className="glass-nav app-header">
-          <Link to="/" className="brand-link">
-            <div className="brand-icon-box">
-              <Boxes size={22} />
-            </div>
-            <h1 className="rich-text-gradient brand-title">
-              Inventory Management
-            </h1>
-          </Link>
+      <Routes>
+        {/* Public Routes (Full Screen, No Navbar) */}
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          <nav className="app-nav">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `nav-link-item ${isActive ? 'active' : ''}`
-              }
-            >
-              <ListFilter size={16} />
-              Inventory
-            </NavLink>
-            <NavLink
-              to="/add"
-              className={({ isActive }) =>
-                `nav-link-item ${isActive ? 'active' : ''}`
-              }
-            >
-              <PackagePlus size={16} />
-              Add Product
-            </NavLink>
-          </nav>
-        </header>
-
-        <main className="app-main">
-          <Routes>
-            <Route path="/" element={<Inventory />} />
-            <Route path="/add" element={<AddProduct />} />
-            <Route path="/edit/:id" element={<EditProduct />} />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
+        {/* Protected Routes (Includes Navbar automatically via Layout) */}
+        <Route element={<AuthenticatedLayout />}>
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/add-product" element={<AddProduct />} />
+          <Route path="/edit-product/:id" element={<EditProduct />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+      </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

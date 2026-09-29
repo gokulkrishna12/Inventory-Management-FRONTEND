@@ -1,0 +1,40 @@
+/* You can reuse the exact same classes as Login, just with the blue button color */
+.register-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.register-card {
+    background: rgba(30, 41, 59, 0.7);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 40px;
+    width: 350px;
+}
+
+.register-btn {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s ease;
+}
+
+.register-btn:hover {
+    background: #2563eb;
+}
+
+.register-link {
+    color: #3b82f6;
+    text-decoration: none;
+}

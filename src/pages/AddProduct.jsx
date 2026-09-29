@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import api from '../utils/api'
 import { useNavigate } from 'react-router-dom'
 import '../styles/AddProduct.css'
 
@@ -36,17 +36,17 @@ function AddProduct() {
       quantity: Number(formData.quantity)
     }
 
-    axios
-      .post('https://inventory-management-backend-sstw.onrender.com/api/products', payload)
+    // Swapped axios for secure api interceptor
+    api.post('/products', payload)
       .then(() => {
         setLoading(false)
-        navigate('/')
+        navigate('/inventory') // Redirects back to dashboard instead of login screen
       })
       .catch((err) => {
         console.error('Error adding product:', err)
         setError(
           err.response?.data?.message ||
-            'Failed to add product. Please make sure backend is running.'
+          'Failed to add product. Ensure Category and Supplier are valid ObjectIds.'
         )
         setLoading(false)
       })
@@ -77,14 +77,14 @@ function AddProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category *</label>
+            <label htmlFor="category">Category ID *</label>
             <input
               type="text"
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              placeholder="e.g. Electronics, Office Supplies"
+              placeholder="Paste MongoDB Category ID"
               required
             />
           </div>
@@ -121,14 +121,15 @@ function AddProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="supplier">Supplier</label>
+            <label htmlFor="supplier">Supplier ID *</label>
             <input
               type="text"
               id="supplier"
               name="supplier"
               value={formData.supplier}
               onChange={handleChange}
-              placeholder="e.g. Acme Logistics"
+              placeholder="Paste MongoDB Supplier ID"
+              required
             />
           </div>
 
@@ -136,7 +137,7 @@ function AddProduct() {
             <button
               type="button"
               className="btn-cancel"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/inventory')}
             >
               Cancel
             </button>

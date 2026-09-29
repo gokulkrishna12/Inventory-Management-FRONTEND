@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../utils/api'
 import { useParams, useNavigate } from 'react-router-dom'
 import '../styles/AddProduct.css'
 
@@ -20,17 +20,18 @@ function EditProduct() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    axios
-      .get(`https://inventory-management-backend-sstw.onrender.com/api/products/${id}`)
+    // Swapped axios for secure api interceptor
+    api.get(`/products/${id}`)
       .then((response) => {
         const product = response.data?.data || response.data
         if (product) {
           setFormData({
             name: product.name || '',
-            category: product.category || '',
+            // Extract the raw ID string if the backend populated it as an object
+            category: product.category?._id || product.category || '',
             price: product.price !== undefined ? product.price : '',
             quantity: product.quantity !== undefined ? product.quantity : '',
-            supplier: product.supplier || ''
+            supplier: product.supplier?._id || product.supplier || ''
           })
         }
         setLoading(false)
@@ -61,17 +62,16 @@ function EditProduct() {
       quantity: Number(formData.quantity)
     }
 
-    axios
-      .put(`https://inventory-management-backend-sstw.onrender.com/api/products/${id}`, payload)
+    api.put(`/products/${id}`, payload)
       .then(() => {
         setSaving(false)
-        navigate('/')
+        navigate('/inventory') // Redirects back to dashboard
       })
       .catch((err) => {
         console.error('Error updating product:', err)
         setError(
           err.response?.data?.message ||
-            'Failed to update product. Please try again.'
+          'Failed to update product. Please try again.'
         )
         setSaving(false)
       })
@@ -112,14 +112,14 @@ function EditProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category *</label>
+            <label htmlFor="category">Category ID *</label>
             <input
               type="text"
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              placeholder="e.g. Electronics, Office Supplies"
+              placeholder="Paste MongoDB Category ID"
               required
             />
           </div>
@@ -156,14 +156,14 @@ function EditProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="supplier">Supplier</label>
+            <label htmlFor="supplier">Supplier ID *</label>
             <input
               type="text"
               id="supplier"
               name="supplier"
               value={formData.supplier}
               onChange={handleChange}
-              placeholder="e.g. Acme Logistics"
+              placeholder="Paste MongoDB Supplier ID"
             />
           </div>
 
@@ -171,7 +171,7 @@ function EditProduct() {
             <button
               type="button"
               className="btn-cancel"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/inventory')}
             >
               Cancel
             </button>
