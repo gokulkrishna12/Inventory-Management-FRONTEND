@@ -11,6 +11,7 @@ const Inventory = lazy(() => import('./pages/Inventory'));
 const AddProduct = lazy(() => import('./pages/AddProduct'));
 const EditProduct = lazy(() => import('./pages/EditProduct'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const UserSales = lazy(() => import('./pages/UserSales')); // Added User Sales page
 
 // Layout wrapper for all protected pages
 function AuthenticatedLayout() {
@@ -41,6 +42,7 @@ function App() {
             <Route path="/add-product" element={<AddProduct />} />
             <Route path="/edit-product/:id" element={<EditProduct />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/sales" element={<UserSales />} /> {/* Sales Route Added */}
           </Route>
         </Routes>
       </Suspense>
