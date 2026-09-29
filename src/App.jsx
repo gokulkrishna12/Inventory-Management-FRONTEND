@@ -2,7 +2,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
-import Navbar from './components/Navbar';
 
 // Lazy load pages to drastically shrink the initial JS bundle size
 const Login = lazy(() => import('./pages/Login'));
@@ -17,7 +16,8 @@ const UserSales = lazy(() => import('./pages/UserSales')); // Added User Sales p
 function AuthenticatedLayout() {
   return (
     <ProtectedRoute>
-      <Navbar />
+      {/* GLOBAL NAVBAR REMOVED FROM HERE! Navbars are now safely inside individual pages */}
+
       {/* Added <main> landmark to fix the Lighthouse Accessibility error */}
       <main>
         <Outlet />
