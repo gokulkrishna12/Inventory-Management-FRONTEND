@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Layers, ShieldCheck, LayoutDashboard, List, History } from 'lucide-react';
 
-// Bulletproof token decoder
+// Bulletproof Token Decoder
 const getRoleFromToken = () => {
     try {
         const token = localStorage.getItem('token');
         if (!token) return 'user';
-        // Safe base64 decoding
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
@@ -21,10 +20,11 @@ const getRoleFromToken = () => {
 
 function Navbar() {
     const navigate = useNavigate();
-    const location = useLocation(); // Track URL changes
-    const [userRole, setUserRole] = useState('user');
+    const location = useLocation();
 
-    // Re-check role EVERY time the page changes. Impossible to flip now!
+    // INSTANT LOAD: No flicker possible
+    const [userRole, setUserRole] = useState(getRoleFromToken);
+
     useEffect(() => {
         setUserRole(getRoleFromToken());
     }, [location.pathname]);
@@ -46,19 +46,16 @@ function Navbar() {
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '15px', marginRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}>
 
-                    {/* ONLY ADMIN SEES DASHBOARD */}
                     {userRole === 'admin' && (
                         <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                             <LayoutDashboard size={16} color="#38bdf8" /> Dashboard
                         </Link>
                     )}
 
-                    {/* INVENTORY LINK FOR ALL */}
                     <Link to="/inventory" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                         <List size={16} color="#34d399" /> Inventory
                     </Link>
 
-                    {/* SALES HISTORY - STRICTLY FOR USERS ONLY */}
                     {userRole === 'user' && (
                         <Link to="/sales" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}>
                             <History size={16} color="#38bdf8" /> Sales History

@@ -5,7 +5,7 @@ import { Edit, Trash2, LogOut, Download, Plus, Search, ShoppingCart } from 'luci
 import Footer from '../components/Footer'
 import '../styles/Inventory.css'
 
-// Bulletproof token decoder
+// Bulletproof Token Decoder
 const getRoleFromToken = () => {
   try {
     const token = localStorage.getItem('token');
@@ -29,15 +29,14 @@ function Inventory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const [userRole, setUserRole] = useState('user')
+  // INSTANT LOAD: No flicker possible
+  const [userRole, setUserRole] = useState(getRoleFromToken)
   const [toast, setToast] = useState('')
 
-  // Sell Modal States (For Staff)
   const [isSellModalOpen, setIsSellModalOpen] = useState(false)
   const [sellData, setSellData] = useState({ id: null, name: '', maxQty: 0 })
   const [sellQuantity, setSellQuantity] = useState(1)
 
-  // Admin History Modal States (For Admin)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [auditLogs, setAuditLogs] = useState([])
 
@@ -46,7 +45,6 @@ function Inventory() {
     setTimeout(() => setToast(''), 3000)
   }
 
-  // Force re-check role on mount and route change
   useEffect(() => {
     setUserRole(getRoleFromToken());
   }, [location.pathname]);
