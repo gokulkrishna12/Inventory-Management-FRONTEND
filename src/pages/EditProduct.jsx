@@ -7,7 +7,6 @@ function EditProduct() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  // States to hold the fetched dropdown data
   const [categories, setCategories] = useState([])
   const [suppliers, setSuppliers] = useState([])
 
@@ -23,19 +22,17 @@ function EditProduct() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  // 1. Fetch categories and suppliers for the dropdowns
   useEffect(() => {
+    // Silently attempt to fetch dropdown data
     api.get('/categories')
-      .then(res => setCategories(res.data.data || res.data))
-      .catch(err => console.error('Failed to fetch categories:', err))
+      .then(res => setCategories(res.data.data || res.data || []))
+      .catch(() => console.log('Backend categories route not found or empty.'))
 
     api.get('/suppliers')
-      .then(res => setSuppliers(res.data.data || res.data))
-      .catch(err => console.error('Failed to fetch suppliers:', err))
-  }, [])
+      .then(res => setSuppliers(res.data.data || res.data || []))
+      .catch(() => console.log('Backend suppliers route not found or empty.'))
 
-  // 2. Fetch the existing product data
-  useEffect(() => {
+    // Fetch existing product data
     api.get(`/products/${id}`)
       .then((response) => {
         const product = response.data?.data || response.data
@@ -52,17 +49,20 @@ function EditProduct() {
       })
       .catch((err) => {
         console.error('Error fetching product:', err)
-        setError('Failed to fetch product details. Make sure backend is running.')
+        setError('Failed to fetch product details.')
         setLoading(false)
       })
   }, [id])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // SMART PASTE: Automatically removes invisible trailing spaces that crash MongoDB
+  const handleSmartPaste = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value.trim() }))
   }
 
   const handleSubmit = (e) => {
@@ -79,14 +79,11 @@ function EditProduct() {
     api.put(`/products/${id}`, payload)
       .then(() => {
         setSaving(false)
-        navigate('/inventory') // Redirects back to dashboard
+        navigate('/inventory')
       })
       .catch((err) => {
         console.error('Error updating product:', err)
-        setError(
-          err.response?.data?.message ||
-          'Failed to update product. Please try again.'
-        )
+        setError(err.response?.data?.message || 'Failed to update product.')
         setSaving(false)
       })
   }
@@ -120,27 +117,30 @@ function EditProduct() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="e.g. Wireless Mouse"
               required
             />
           </div>
 
           <div className="form-group">
             <label htmlFor="category">Category *</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled>Select a Category</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            {categories.length > 0 ? (
+              <select id="category" name="category" value={formData.category} onChange={handleChange} required>
+                <option value="" disabled>Select a Category</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleSmartPaste}
+                placeholder="Paste Category ID here"
+                required
+              />
+            )}
           </div>
 
           <div className="form-row">
@@ -154,7 +154,6 @@ function EditProduct() {
                 min="0"
                 value={formData.price}
                 onChange={handleChange}
-                placeholder="0.00"
                 required
               />
             </div>
@@ -168,7 +167,6 @@ function EditProduct() {
                 min="0"
                 value={formData.quantity}
                 onChange={handleChange}
-                placeholder="0"
                 required
               />
             </div>
@@ -176,28 +174,28 @@ function EditProduct() {
 
           <div className="form-group">
             <label htmlFor="supplier">Supplier *</label>
-            <select
-              id="supplier"
-              name="supplier"
-              value={formData.supplier}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled>Select a Supplier</option>
-              {suppliers.map((sup) => (
-                <option key={sup._id} value={sup._id}>
-                  {sup.name}
-                </option>
-              ))}
-            </select>
+            {suppliers.length > 0 ? (
+              <select id="supplier" name="supplier" value={formData.supplier} onChange={handleChange} required>
+                <option value="" disabled>Select a Supplier</option>
+                {suppliers.map((sup) => (
+                  <option key={sup._id} value={sup._id}>{sup.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                id="supplier"
+                name="supplier"
+                value={formData.supplier}
+                onChange={handleSmartPaste}
+                placeholder="Paste Supplier ID here"
+                required
+              />
+            )}
           </div>
 
           <div className="form-actions">
-            <button
-              type="button"
-              className="btn-cancel"
-              onClick={() => navigate('/inventory')}
-            >
+            <button type="button" className="btn-cancel" onClick={() => navigate('/inventory')}>
               Cancel
             </button>
             <button type="submit" className="btn-submit" disabled={saving}>
