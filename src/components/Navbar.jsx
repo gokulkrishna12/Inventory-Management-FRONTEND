@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Layers, ShieldCheck, LayoutDashboard, List, History } from 'lucide-react';
 
-// Bulletproof Token Decoder
+// Bulletproof token decoder with safe Base64 padding
 const getRoleFromToken = () => {
     try {
         const token = localStorage.getItem('token');
         if (!token) return 'user';
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload).role === 'admin' ? 'admin' : 'user';
+
+        let base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        // Pad the string so atob() never throws a decoding error
+        while (base64.length % 4) {
+            base64 += '=';
+        }
+
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role === 'admin' ? 'admin' : 'user';
     } catch (err) {
+        console.error("JWT Decode Error (Navbar):", err);
         return 'user';
     }
 };
@@ -22,7 +26,6 @@ function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // INSTANT LOAD: No flicker possible
     const [userRole, setUserRole] = useState(getRoleFromToken);
 
     useEffect(() => {

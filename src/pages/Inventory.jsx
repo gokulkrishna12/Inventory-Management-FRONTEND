@@ -7,21 +7,20 @@ export default function Inventory() {
   try {
     const token = localStorage.getItem('token');
     if (token) {
-      // Safely decode the JWT payload
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
+      let base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      // Pad the string so atob() never throws a decoding error
+      while (base64.length % 4) {
+        base64 += '=';
+      }
 
-      const payload = JSON.parse(jsonPayload);
+      const payload = JSON.parse(window.atob(base64));
       role = payload.role === 'admin' ? 'admin' : 'user';
     }
   } catch (err) {
+    console.error("JWT Decode Error (Inventory Wrapper):", err);
     role = 'user';
   }
 
-  // Absolutely zero chance of cross-contamination now. 
-  // If you are admin, you get AdminInventory. Otherwise, UserInventory.
+  // Maps securely to the isolated components
   return role === 'admin' ? <AdminInventory /> : <UserInventory />;
 }
