@@ -12,8 +12,20 @@ function Inventory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // User Role & Toast States
-  const [userRole, setUserRole] = useState('user')
+  // Instant User Role Initialization from Token (Prevents Admin role flash bug)
+  const [userRole, setUserRole] = useState(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        return payload.role || 'user'
+      } catch (err) {
+        return 'user'
+      }
+    }
+    return 'user'
+  })
+
   const [toast, setToast] = useState('')
 
   // Sell Modal States (For Staff)
@@ -31,17 +43,6 @@ function Inventory() {
   }
 
   useEffect(() => {
-    // Decode JWT for RBAC
-    const token = localStorage.getItem('token')
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        setUserRole(payload.role || 'user')
-      } catch (err) {
-        console.error("Token read error:", err)
-      }
-    }
-
     // Fetch Products
     api.get(`/products`)
       .then((response) => {
@@ -317,7 +318,6 @@ function Inventory() {
                     <td>
                       <div className="actions-cell">
 
-                        {/* RBAC Logic: Admins see Edit/Delete. Staff see Sell. */}
                         {userRole === 'admin' ? (
                           <>
                             <button

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
-import '../styles/AddProduct.css' // Reusing your existing lightweight glass styles
+import '../styles/AddProduct.css'
 
 function UserSales() {
     const [transactions, setTransactions] = useState([])
@@ -8,8 +8,8 @@ function UserSales() {
     const [error, setError] = useState(null)
 
     useEffect(() => {
-        // Fetch transaction history from backend
-        api.get('/products/transactions') // Adjust route if your backend path differs
+        // Correct backend endpoint matching productController transaction history
+        api.get('/products/transactions/history')
             .then((res) => {
                 setTransactions(res.data.data || res.data || [])
                 setLoading(false)
@@ -51,7 +51,7 @@ function UserSales() {
                                     <tr key={tx._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                         <td style={{ padding: '12px' }}>{tx.product?.name || 'Deleted Product'}</td>
                                         <td style={{ padding: '12px', color: '#10b981', fontWeight: 'bold' }}>{tx.quantityChanged}</td>
-                                        <td style={{ padding: '12px' }}>{tx.user?.name || 'Staff'}</td>
+                                        <td style={{ padding: '12px' }}>{tx.user?.name || tx.user?.email || 'Staff'}</td>
                                         <td style={{ padding: '12px', color: '#94a3b8' }}>{new Date(tx.createdAt).toLocaleDateString()}</td>
                                     </tr>
                                 ))}
