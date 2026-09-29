@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { useNavigate } from 'react-router-dom'
 import '../styles/AddProduct.css'
 
 function AddProduct() {
   const navigate = useNavigate()
+
+  // New states to hold the fetched dropdown data
+  const [categories, setCategories] = useState([])
+  const [suppliers, setSuppliers] = useState([])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -16,6 +20,17 @@ function AddProduct() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Fetch categories and suppliers as soon as the component loads
+  useEffect(() => {
+    api.get('/categories')
+      .then(res => setCategories(res.data.data || res.data))
+      .catch(err => console.error('Failed to fetch categories:', err))
+
+    api.get('/suppliers')
+      .then(res => setSuppliers(res.data.data || res.data))
+      .catch(err => console.error('Failed to fetch suppliers:', err))
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -36,17 +51,16 @@ function AddProduct() {
       quantity: Number(formData.quantity)
     }
 
-    // Swapped axios for secure api interceptor
     api.post('/products', payload)
       .then(() => {
         setLoading(false)
-        navigate('/inventory') // Redirects back to dashboard instead of login screen
+        navigate('/inventory')
       })
       .catch((err) => {
         console.error('Error adding product:', err)
         setError(
           err.response?.data?.message ||
-          'Failed to add product. Ensure Category and Supplier are valid ObjectIds.'
+          'Failed to add product. Ensure Category and Supplier are valid.'
         )
         setLoading(false)
       })
@@ -77,16 +91,21 @@ function AddProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category ID *</label>
-            <input
-              type="text"
+            <label htmlFor="category">Category *</label>
+            <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              placeholder="Paste MongoDB Category ID"
               required
-            />
+            >
+              <option value="" disabled>Select a Category</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-row">
@@ -121,16 +140,21 @@ function AddProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="supplier">Supplier ID *</label>
-            <input
-              type="text"
+            <label htmlFor="supplier">Supplier *</label>
+            <select
               id="supplier"
               name="supplier"
               value={formData.supplier}
               onChange={handleChange}
-              placeholder="Paste MongoDB Supplier ID"
               required
-            />
+            >
+              <option value="" disabled>Select a Supplier</option>
+              {suppliers.map((sup) => (
+                <option key={sup._id} value={sup._id}>
+                  {sup.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-actions">

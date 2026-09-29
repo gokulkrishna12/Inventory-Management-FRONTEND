@@ -42,7 +42,7 @@ function Register() {
     };
 
     return (
-        <div className="register-wrapper">
+        <main className="register-wrapper">
             <div className="register-card">
                 <h2 className="auth-title">Create Account</h2>
                 {error && <div className="auth-error">{error}</div>}
@@ -81,7 +81,7 @@ function Register() {
                     Already have an account? <Link to="/" className="register-link">Login here</Link>
                 </p>
             </div>
-        </div>
+        </main>
     );
 }
 

@@ -7,6 +7,10 @@ function EditProduct() {
   const { id } = useParams()
   const navigate = useNavigate()
 
+  // States to hold the fetched dropdown data
+  const [categories, setCategories] = useState([])
+  const [suppliers, setSuppliers] = useState([])
+
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -19,15 +23,25 @@ function EditProduct() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
+  // 1. Fetch categories and suppliers for the dropdowns
   useEffect(() => {
-    // Swapped axios for secure api interceptor
+    api.get('/categories')
+      .then(res => setCategories(res.data.data || res.data))
+      .catch(err => console.error('Failed to fetch categories:', err))
+
+    api.get('/suppliers')
+      .then(res => setSuppliers(res.data.data || res.data))
+      .catch(err => console.error('Failed to fetch suppliers:', err))
+  }, [])
+
+  // 2. Fetch the existing product data
+  useEffect(() => {
     api.get(`/products/${id}`)
       .then((response) => {
         const product = response.data?.data || response.data
         if (product) {
           setFormData({
             name: product.name || '',
-            // Extract the raw ID string if the backend populated it as an object
             category: product.category?._id || product.category || '',
             price: product.price !== undefined ? product.price : '',
             quantity: product.quantity !== undefined ? product.quantity : '',
@@ -112,16 +126,21 @@ function EditProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category ID *</label>
-            <input
-              type="text"
+            <label htmlFor="category">Category *</label>
+            <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              placeholder="Paste MongoDB Category ID"
               required
-            />
+            >
+              <option value="" disabled>Select a Category</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-row">
@@ -156,15 +175,21 @@ function EditProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="supplier">Supplier ID *</label>
-            <input
-              type="text"
+            <label htmlFor="supplier">Supplier *</label>
+            <select
               id="supplier"
               name="supplier"
               value={formData.supplier}
               onChange={handleChange}
-              placeholder="Paste MongoDB Supplier ID"
-            />
+              required
+            >
+              <option value="" disabled>Select a Supplier</option>
+              {suppliers.map((sup) => (
+                <option key={sup._id} value={sup._id}>
+                  {sup.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-actions">

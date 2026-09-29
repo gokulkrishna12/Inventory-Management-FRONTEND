@@ -35,7 +35,7 @@ function Login() {
     };
 
     return (
-        <div className="auth-wrapper">
+        <main className="auth-wrapper">
             <div className="auth-card">
                 <h2 className="auth-title">System Login</h2>
                 {error && <div className="auth-error">{error}</div>}
@@ -66,7 +66,7 @@ function Login() {
                     Don't have an account? <Link to="/register" className="auth-link">Register</Link>
                 </p>
             </div>
-        </div>
+        </main>
     );
 }
 
