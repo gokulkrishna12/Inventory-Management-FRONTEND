@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import api from '../utils/api'
 import { useNavigate } from 'react-router-dom'
 import '../styles/AddProduct.css'
 
 function AddProduct() {
   const navigate = useNavigate()
-
-  // New states to hold the fetched dropdown data
-  const [categories, setCategories] = useState([])
-  const [suppliers, setSuppliers] = useState([])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -21,22 +17,20 @@ function AddProduct() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // Fetch categories and suppliers as soon as the component loads
-  useEffect(() => {
-    api.get('/categories')
-      .then(res => setCategories(res.data.data || res.data))
-      .catch(err => console.error('Failed to fetch categories:', err))
-
-    api.get('/suppliers')
-      .then(res => setSuppliers(res.data.data || res.data))
-      .catch(err => console.error('Failed to fetch suppliers:', err))
-  }, [])
-
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value
+    }))
+  }
+
+  // Smart input handler: automatically strips trailing whitespace on IDs
+  const handleSmartChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value.trim()
     }))
   }
 
@@ -60,7 +54,7 @@ function AddProduct() {
         console.error('Error adding product:', err)
         setError(
           err.response?.data?.message ||
-          'Failed to add product. Ensure Category and Supplier are valid.'
+          'Failed to add product. Ensure Category and Supplier IDs are valid.'
         )
         setLoading(false)
       })
@@ -91,21 +85,16 @@ function AddProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category *</label>
-            <select
+            <label htmlFor="category">Category ID *</label>
+            <input
+              type="text"
               id="category"
               name="category"
               value={formData.category}
-              onChange={handleChange}
+              onChange={handleSmartChange}
+              placeholder="Paste MongoDB Category ID"
               required
-            >
-              <option value="" disabled>Select a Category</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="form-row">
@@ -140,21 +129,16 @@ function AddProduct() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="supplier">Supplier *</label>
-            <select
+            <label htmlFor="supplier">Supplier ID *</label>
+            <input
+              type="text"
               id="supplier"
               name="supplier"
               value={formData.supplier}
-              onChange={handleChange}
+              onChange={handleSmartChange}
+              placeholder="Paste MongoDB Supplier ID"
               required
-            >
-              <option value="" disabled>Select a Supplier</option>
-              {suppliers.map((sup) => (
-                <option key={sup._id} value={sup._id}>
-                  {sup.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="form-actions">
