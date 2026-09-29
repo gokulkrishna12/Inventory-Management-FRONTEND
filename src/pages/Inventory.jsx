@@ -12,12 +12,13 @@ function Inventory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Rock-solid Strict Role Initialization
+  // INSTANT Synchronous role check. No flickering.
   const [userRole] = useState(() => {
     try {
       const token = localStorage.getItem('token')
       if (!token) return 'user'
       const payload = JSON.parse(atob(token.split('.')[1]))
+      console.log("Inventory Token Role:", payload.role); // Check your F12 console!
       return payload.role === 'admin' ? 'admin' : 'user'
     } catch (err) {
       return 'user'

@@ -1,24 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Layers, ShieldCheck, LayoutDashboard, List, History } from 'lucide-react';
 
 function Navbar() {
     const navigate = useNavigate();
-    const [userRole, setUserRole] = useState('user'); // Default securely to user
 
-    useEffect(() => {
-        // Strict JWT Decoding
+    // INSTANT Synchronous role check. No useEffect delays.
+    const [userRole] = useState(() => {
         try {
             const token = localStorage.getItem('token');
-            if (token) {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                // Force strict role assignment
-                setUserRole(payload.role === 'admin' ? 'admin' : 'user');
-            }
+            if (!token) return 'user';
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            console.log("Navbar Token Role:", payload.role); // Check your F12 console!
+            return payload.role === 'admin' ? 'admin' : 'user';
         } catch (err) {
-            setUserRole('user');
+            return 'user';
         }
-    }, []);
+    });
 
     return (
         <header className="glass-panel" style={{ margin: '1.5rem auto', maxWidth: '1100px', width: 'calc(100% - 3rem)', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -35,7 +33,6 @@ function Navbar() {
             </div>
 
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-
                 <div style={{ display: 'flex', gap: '15px', marginRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}>
 
                     {/* ONLY ADMIN SEES DASHBOARD */}
