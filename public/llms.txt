@@ -1,4 +1,8 @@
 # Inventory Management System
-This is a full-stack MERN application built by Gokul Krishna.
-It features Create, Read, Update, and Delete (CRUD) operations for inventory items.
-Live Site: https://inventory-management-frontend-one-lac.vercel.app/
+
+> A full-stack MERN application for managing inventory, with product CRUD, a sales view and a dashboard.
+
+## Links
+
+- [Live app](https://inventory-management-frontend-one-lac.vercel.app/): Login and inventory management interface
+- [Register](https://inventory-management-frontend-one-lac.vercel.app/register): Create an account
